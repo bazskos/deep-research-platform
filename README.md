@@ -62,4 +62,6 @@ Writer Agent: Compiles the summarized data into a cohesive, structured markdown 
 Critic Agent: Reviews the final report against the original query to ensure quality and accuracy.
 
 📝 License
-This project is open-source and available under the MIT License.
+This project is part of my personal portfolio and academic work. All rights reserved. >
+The code and documentation provided in this repository are for viewing and educational purposes only. You may not copy, modify, distribute, or use this work for commercial or non-academic purposes without explicit written permission from the author.
+If you are interested in collaborating or using this technology, please feel free to reach out to me directly.
