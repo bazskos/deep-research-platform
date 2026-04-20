@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  /* Finom mélylila ragyogás a háttérben */
+  background: radial-gradient(125% 125% at 50% 10%, #0a0a0a 40%, #2e1065 100%);
+  background-attachment: fixed;
+}
+
+/* =========================================
+   Sparkle Button 
+   ========================================= */
+.sparkle-button {
+  --active: 0; --transition: 0.3s;
+  --bg: radial-gradient(40% 50% at center 100%, hsl(270 calc(var(--active) * 97%) 72% / var(--active)), transparent),
+        radial-gradient(80% 100% at center 120%, hsl(260 calc(var(--active) * 97%) 70% / var(--active)), transparent),
+        hsl(260 calc(var(--active) * 97%) calc((var(--active) * 44%) + 12%));
+  background: var(--bg); font-size: 0.95rem; font-weight: 600; border: 0; cursor: pointer;
+  padding: 0.5em 1.2em; height: 44px; display: flex; align-items: center; gap: 0.25em;
+  white-space: nowrap; border-radius: 100px; position: relative;
+  box-shadow: 0 0 calc(var(--active) * 2em) calc(var(--active) * 0.5em) hsl(260 97% 61% / 0.5),
+              0 0em 0 0 hsl(260 calc(var(--active) * 97%) calc((var(--active) * 50%) + 30%)) inset,
+              0 -0.05em 0 0 hsl(260 calc(var(--active) * 97%) calc(var(--active) * 60%)) inset;
+  transition: box-shadow var(--transition), scale var(--transition), background var(--transition);
+  scale: calc(1 + (var(--active) * 0.05));
+}
+
+.sparkle-button:active { scale: 1; }
+.sparkle-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.sparkle-button:is(:hover, :focus-visible):not(:disabled) { --active: 1; }
+
+.sparkle path {
+  color: hsl(0 0% calc((var(--active, 0) * 70%) + var(--base)));
+  transform-box: fill-box; transform-origin: center; fill: currentColor;
+  transition: color var(--transition);
+}
+
+.sparkle path:nth-of-type(1) { --base: 40%; }
+.sparkle path:nth-of-type(2) { --base: 20%; }
+.sparkle path:nth-of-type(3) { --base: 30%; }
+
+.backdrop {
+  position: absolute; inset: 1px; background: var(--bg);
+  border-radius: 100px; transition: background var(--transition); z-index: -1;
+}
+
+.btn-text-sparkle {
+  position: relative; z-index: 2; letter-spacing: 0.01ch;
+  background: linear-gradient(90deg, hsl(0 0% calc((var(--active) * 100%) + 65%)), hsl(0 0% calc((var(--active) * 100%) + 26%)));
+  -webkit-background-clip: text; color: transparent; transition: background var(--transition);
+}
+
+.sparkle-button svg { inline-size: 1.25em; position: relative; z-index: 2; }
+
+/* =========================================
+   Custom Double Circle Loader
+   ========================================= */
+.loader { display: inline-block; width: 20px; height: 20px; position: relative; z-index: 2;}
+.loader svg { width: 100%; height: 100%; animation: rotate-svg 2s linear infinite; transform-origin: center center; }
+.loader-circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+.circle-1 { stroke: #a855f7; stroke-dasharray: 251.3274; stroke-dashoffset: 251.3274; animation: dash-circle1 1.5s cubic-bezier(0.66, 0, 0.34, 1) infinite alternate; }
+.circle-2 { stroke: #e9d5ff; stroke-dasharray: 188.4956; stroke-dashoffset: 0; animation: dash-circle2 1.5s cubic-bezier(0.66, 0, 0.34, 1) infinite alternate; }
+
+@keyframes rotate-svg { 100% { transform: rotate(360deg); } }
+@keyframes dash-circle1 { 0% { stroke-dashoffset: 251.3274; } 100% { stroke-dashoffset: 0; } }
+@keyframes dash-circle2 { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 188.4956; } }
+
+/* =========================================
+   Markdown Formatting (ReportViewer)
+   ========================================= */
+.markdown-body h1 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.5em; color: #ffffff; }
+.markdown-body h2 { font-size: 1.5rem; font-weight: 600; margin: 1.5em 0 0.5em; color: #ffffff; border-bottom: 1px solid #27272a; padding-bottom: 0.3em; }
+.markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin: 1.2em 0 0.5em; color: #e4e4e7; }
+.markdown-body p { margin-bottom: 1rem; line-height: 1.7; color: #d4d4d8; }
+.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #d4d4d8; }
+.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; color: #d4d4d8; }
+.markdown-body strong { font-weight: 700; color: #ffffff; }
+.markdown-body a { color: #a855f7; text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
