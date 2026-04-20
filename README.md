@@ -41,16 +41,18 @@ Make sure you have the following installed:
    git clone [https://github.com/bazskos/deep-research-platform.git](https://github.com/bazskos/deep-research-platform.git)
    cd deep-research-platform
 2. **Setup the Backend**
+   ```bash
    cd deep-research-agent
    npm install
    cp .env.example .env
    # Edit .env with your database credentials and API keys
    npm run start:dev
-3. **Setup the Frontend**
+4. **Setup the Frontend**
+   ```bash
    cd ../frontend
    npm install
    npm run dev
-4. **Open the app**
+6. **Open the app**
    Navigate to http://localhost:3001 in your browser.
 
 🏗️ Architecture
