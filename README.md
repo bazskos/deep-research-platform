@@ -1,67 +1,131 @@
-# 🧠 Deep Research Platform
+# 🚀 Deep Research Platform
 
-An advanced, AI-powered multi-agent research system built with Next.js and NestJS. This platform autonomously plans, researches, writes, and reviews comprehensive reports based on any user query.
+A multi-step AI research system that decomposes complex queries, retrieves real-time data, and generates structured reports using an asynchronous pipeline.
+---
+
+## 🧠 Overview
+
+Deep Research Platform is designed to handle complex questions by breaking them down into smaller research tasks, gathering relevant information from the web, and producing structured, readable outputs.
+
+Instead of generating a single response, the system processes queries in multiple stages using background workers and a queue-based architecture. 
+
+---
 
 ## ✨ Features
 
-* **Multi-Agent Architecture**: Utilizes specialized AI agents (Planner, Researcher, Writer, Critic) to process complex research tasks.
-* **Vector Memory (RAG)**: Integrates `pgvector` and HuggingFace embeddings to remember previous research and avoid redundant work.
-* **Asynchronous Processing**: Uses `BullMQ` and Redis to handle multiple deep research jobs in the background without blocking the server.
-* **Modern UI**: A beautiful, responsive "Glassmorphism" interface built with Next.js App Router and Tailwind CSS v4.
-* **PDF & Markdown Export**: Automatically generates and downloads beautifully formatted research reports.
+- 🔍 **Multi-step research pipeline:** Planning, Researching, Writing, and Critiquing.
+- 🌐 **Real-time web search integration:** Powered by Tavily API.
+- ⚙️ **Asynchronous processing:** BullMQ + Redis for robust background job handling.
+- 🧠 **Vector-based memory:** PostgreSQL + pgvector for storing embeddings.
+- 🎨 **Modern Interactive UI:** Next.js frontend featuring Glassmorphism, a Gooey search effect, and real-time progress tracking (Stepper).
 
-## 🛠️ Tech Stack
+<img width="1901" height="865" alt="screen" src="https://github.com/user-attachments/assets/85538139-841f-40db-8f1b-38ab5e02f247" />
 
-**Frontend**
-* Framework: Next.js (React 19)
-* Styling: Tailwind CSS v4
-* Export: jsPDF, Marked
 
-**Backend**
-* Framework: NestJS
-* Database: PostgreSQL with `pgvector` (via TypeORM)
-* Queue: BullMQ (Redis)
-* AI Models: Llama-3.3-70b (via Groq SDK)
-* Search Engine: Tavily API
-* Embeddings: HuggingFace (all-MiniLM-L6-v2)
+- 📄 **Export Options:** Generates structured Markdown reports with 1-click MD or PDF export.
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
-Make sure you have the following installed:
-* Node.js (v18 or higher)
-* PostgreSQL (with pgvector extension enabled)
-* Redis
-* API Keys for [Groq](https://groq.com/), [Tavily](https://tavily.com/), and [HuggingFace](https://huggingface.co/)
+## 🏗️ Architecture
 
-### Installation
+The system is built around an asynchronous pipeline with separated responsibilities:
 
-1. **Clone the repository**
-   ```bash
-   git clone [https://github.com/bazskos/deep-research-platform.git](https://github.com/bazskos/deep-research-platform.git)
-   cd deep-research-platform
-2. **Setup the Backend**
-   ```bash
-   cd deep-research-agent
-   npm install
-   cp .env.example .env
-   # Edit .env with your database credentials and API keys
-   npm run start:dev
-4. **Setup the Frontend**
-   ```bash
-   cd ../frontend
-   npm install
-   npm run dev
-6. **Open the app**
-   Navigate to http://localhost:3001 in your browser.
+- **Planner Agent:** Decomposes the input query into smaller, focused research tasks.
+- **Researcher Agent:** Executes tasks by retrieving and summarizing data from external web sources.
+- **Writer & Critic Agents:** Aggregates results into a structured, beautifully formatted final report and verifies quality.
+- **Queue System (BullMQ + Redis):** Handles background job processing and orchestration.
+- **Vector Memory (pgvector):** Stores embeddings for potential reuse and context enrichment.
 
-🏗️ Architecture
-Planner Agent: Breaks down the user's query into 3-6 specific, actionable subtopics.
-Researcher Agent: Uses the Tavily API to gather information for each subtopic and summarizes the findings.
-Writer Agent: Compiles the summarized data into a cohesive, structured markdown report.
-Critic Agent: Reviews the final report against the original query to ensure quality and accuracy.
+---
 
-📝 License
-This project is part of my personal portfolio and academic work. All rights reserved. >
-The code and documentation provided in this repository are for viewing and educational purposes only. You may not copy, modify, distribute, or use this work for commercial or non-academic purposes without explicit written permission from the author.
-If you are interested in collaborating or using this technology, please feel free to reach out to me directly.
+## 🔄 Pipeline Flow
+
+1. User submits a query via the interactive frontend.
+2. Planner splits the query into subtopics.
+3. Research tasks are queued in Redis.
+4. Workers process tasks asynchronously.
+5. Results are stored and optionally embedded.
+6. Writer generates the final structured output.
+
+---
+
+## 🧱 Tech Stack
+
+- **Frontend:** Next.js (App Router), React, Tailwind CSS, Lucide Icons, React-Markdown.
+- **Backend:** Node.js, NestJS, TypeScript.
+- **Queue:** BullMQ + Redis.
+- **Database:** PostgreSQL + pgvector.
+- **AI Models:** Groq API (Llama 3 / Gemma) + HuggingFace Inference.
+- **Search:** Tavily API.
+
+---
+
+## ▶️ Getting Started
+
+### 1. Clone the repository
+
+    git clone [https://github.com/bazskos/deep-research-platform.git](https://github.com/bazskos/deep-research-platform.git)
+    cd deep-research-platform
+
+### 2. Install dependencies
+
+    # Install backend dependencies
+    cd backend
+    npm install
+
+    # Install frontend dependencies
+    cd ../frontend
+    npm install
+
+### 3. Setup environment variables
+
+Create a .env file in your backend directory:
+
+    GROQ_API_KEY=your_groq_api_key
+    TAVILY_API_KEY=your_tavily_api_key
+    DATABASE_URL=postgresql://user:password@localhost:5432/your_db
+    REDIS_URL=redis://localhost:6379
+
+### 4. Run the application
+
+    # Start the backend services
+    npm run start:dev
+
+    # Start the frontend (in a new terminal tab)
+    cd frontend
+    npm run dev
+
+---
+
+## ⚠️ Limitations
+
+- Output quality heavily depends on the underlying LLM's context window and rate limits.
+- Not a fully autonomous agent system (flow is strictly orchestrated).
+- Research depth depends on external API (Tavily) search results.
+
+---
+
+## 🧪 Possible Improvements (Roadmap)
+
+- **Validation Layer:** Introduce Zod schema validation for strict Agent contracts.
+- **State Machine:** Implement explicit job states and robust retry/fallback strategies for LLM API failures.
+- **Observability:** Add structured logging for job lifecycles.
+- **Caching:** Optimize search performance and reduce LLM token usage.
+
+---
+
+## 📄 License
+
+This project uses the existing license in the repository.
+
+---
+
+## 💡 Motivation
+
+The goal of this project is to explore how AI systems can move beyond single-step chatbot responses and instead operate as structured, multi-stage pipelines with real data retrieval and memory components.
+
+---
+
+## 🙋‍♂️ Author
+
+Built by **bazskos**
