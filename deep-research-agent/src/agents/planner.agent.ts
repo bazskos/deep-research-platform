@@ -18,6 +18,8 @@ export class PlannerAgent {
 
     const subTaskCount = depth === DepthLevel.QUICK ? 3 : 6;
     const prompt = this.buildPrompt(query, subTaskCount, memoryContext);
+
+    // Using the LLM to generate the plan
     const raw = await this.llmService.generate(prompt, 0.5);
     const subTasks = this.parseSubTasks(raw);
 
@@ -34,34 +36,68 @@ export class PlannerAgent {
       ? `\nRelevant previous research (use this to avoid duplication and go deeper):\n${memoryContext}\n`
       : '';
 
-    return `You are a research planning expert.
-Your job is to break down a complex research question into ${count} focused subtopics.
+    return `You are a Senior Research Planning AI.
+Your job is to break down the user's research query into ${count} specific, deep research subtasks.
 ${memorySection}
 Research question: "${query}"
 
-Rules:
-- Each subtopic must be specific and researchable
-- Subtopics must cover different aspects of the main question
-- No overlapping between subtopics
-- If previous research is provided, focus on new angles not yet covered
-- Return ONLY a JSON array, no explanation, no markdown
+STRICT RULES:
+1. Define the priority of the tasks (priority: 1 is the highest/most fundamental, 5 is the lowest). Foundation topics should get priority 1.
+2. Define dependencies (dependsOn). If understanding task B requires the results of task A, put task A's ID into task B's dependsOn array.
+3. Output EXCLUSIVELY a valid JSON array of objects. Do NOT include markdown formatting like \`\`\`json.
 
-Expected format:
-["subtopic 1", "subtopic 2", "subtopic 3"]`;
+Expected JSON structure:
+[
+  {
+    "id": "task_1",
+    "topic": "Clarifying core concepts and definitions",
+    "priority": 1,
+    "dependsOn": []
+  },
+  {
+    "id": "task_2",
+    "topic": "Deeper implications and technical analysis",
+    "priority": 2,
+    "dependsOn": ["task_1"]
+  }
+]`;
   }
 
   private parseSubTasks(raw: string): SubTask[] {
-    const cleaned = raw
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim();
+    try {
+      // Clean up potential markdown formatting from the LLM response
+      const cleaned = raw
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
 
-    const topics: string[] = JSON.parse(cleaned);
+      const parsedData = JSON.parse(cleaned);
+      const topics = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-    return topics.map((topic) => ({
-      id: uuidv4(),
-      topic,
-      completed: false,
-    }));
+      return topics.map((item: any) => ({
+        id: item.id || `task_${uuidv4().substring(0, 8)}`,
+        topic:
+          item.topic || (typeof item === 'string' ? item : 'Unknown topic'),
+        completed: false,
+        priority: item.priority || 3,
+        dependsOn: Array.isArray(item.dependsOn) ? item.dependsOn : [],
+      }));
+    } catch (error) {
+      this.logger.error(
+        `Failed to parse JSON from Planner AI. Raw output: ${raw}`,
+        error,
+      );
+
+      // Safe fallback in case of complete JSON failure
+      return [
+        {
+          id: `task_${uuidv4().substring(0, 8)}`,
+          topic: 'General overview of the topic',
+          completed: false,
+          priority: 1,
+          dependsOn: [],
+        },
+      ];
+    }
   }
 }

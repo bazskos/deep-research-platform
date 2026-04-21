@@ -73,12 +73,63 @@ body {
 /* =========================================
    Markdown Formatting (ReportViewer)
    ========================================= */
-.markdown-body h1 { font-size: 2rem; font-weight: 700; margin: 1.5em 0 0.5em; color: #ffffff; }
-.markdown-body h2 { font-size: 1.5rem; font-weight: 600; margin: 1.5em 0 0.5em; color: #ffffff; border-bottom: 1px solid #27272a; padding-bottom: 0.3em; }
-.markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin: 1.2em 0 0.5em; color: #e4e4e7; }
-.markdown-body p { margin-bottom: 1rem; line-height: 1.7; color: #d4d4d8; }
-.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; color: #d4d4d8; }
-.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; color: #d4d4d8; }
-.markdown-body strong { font-weight: 700; color: #ffffff; }
-.markdown-body a { color: #a855f7; text-decoration: none; }
-.markdown-body a:hover { text-decoration: underline; }
+.markdown-body h1 { font-size: 2.5rem; font-weight: 900; margin: 0 0 1em; color: #ffffff; letter-spacing: -0.02em; line-height: 1.2; }
+.markdown-body h2 { font-size: 1.5rem; font-weight: 700; margin: 2em 0 1em; color: #a855f7; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5em; }
+.markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5em 0 0.5em; color: #e4e4e7; }
+.markdown-body p { margin-bottom: 1.25rem; line-height: 1.8; color: #d4d4d8; font-size: 1.05rem; }
+.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #d4d4d8; line-height: 1.8; }
+.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #d4d4d8; line-height: 1.8; }
+.markdown-body li { margin-bottom: 0.5rem; }
+.markdown-body strong, .markdown-body b { font-weight: 700; color: #ffffff; }
+.markdown-body blockquote { border-left: 4px solid #a855f7; font-style: italic; color: #a1a1aa; background: rgba(168, 85, 247, 0.05); padding: 1rem 1.5rem; border-radius: 0 12px 12px 0; margin-bottom: 1.5rem; }
+.markdown-body a { color: #a855f7; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.markdown-body a:hover { color: #d946ef; text-decoration: underline; }
+
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0a0a0a;
+  color: #ffffff;
+  background: radial-gradient(125% 125% at 50% 10%, #0a0a0a 40%, #2e1065 100%);
+  background-attachment: fixed;
+}
+
+/* =========================================
+   Print (PDF Export) Styles
+   ========================================= */
+@media print {
+  /* Hide UI elements */
+  button, 
+  .progress-tracker-container, 
+  .bg-indigo-900\/10,
+  .bg-purple-900\/10 {
+    display: none !important;
+  }
+  
+  /* Make the content printable */
+  .glass-panel {
+    border: none !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Fix text colors for printing */
+  .prose-invert, .text-slate-300, .text-slate-200, .text-white {
+    color: black !important;
+  }
+  
+  .text-indigo-300 {
+    color: #4f46e5 !important; /* Keep headers slightly colored but dark enough */
+  }
+}

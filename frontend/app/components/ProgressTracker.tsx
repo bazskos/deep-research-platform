@@ -1,117 +1,89 @@
 'use client';
 
-import { ResearchJob, ResearchStatus } from '@/types/research';
+import React from 'react';
+import { BrainCircuit, Search, PenTool, SearchCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ResearchStatus } from '../../types/research';
 
 interface ProgressTrackerProps {
-  job: ResearchJob;
+  status: ResearchStatus;
 }
 
-const STEPS = [
-  { status: ResearchStatus.PLANNING, label: 'Planning', icon: '🧠' },
-  { status: ResearchStatus.RESEARCHING, label: 'Researching', icon: '🔎' },
-  { status: ResearchStatus.WRITING, label: 'Writing', icon: '🧾' },
-  { status: ResearchStatus.CRITIQUING, label: 'Reviewing', icon: '✅' },
-];
+export default function ProgressTracker({ status }: ProgressTrackerProps) {
+  const steps = [
+    { id: ResearchStatus.PLANNING, label: 'Planning', icon: BrainCircuit, description: 'Breakdown into topics' },
+    { id: ResearchStatus.RESEARCHING, label: 'Search', icon: Search, description: 'Colleting data from the web' },
+    { id: ResearchStatus.WRITING, label: 'Writing', icon: PenTool, description: 'Writing a report' },
+    { id: ResearchStatus.CRITIQUING, label: 'Criticism', icon: SearchCheck, description: 'Fact checking' },
+    { id: ResearchStatus.COMPLETED, label: 'Done', icon: CheckCircle2, description: 'Report generated' },
+  ];
 
-const STATUS_ORDER = [
-  ResearchStatus.PENDING,
-  ResearchStatus.PLANNING,
-  ResearchStatus.RESEARCHING,
-  ResearchStatus.WRITING,
-  ResearchStatus.CRITIQUING,
-  ResearchStatus.COMPLETED,
-];
+  const currentIndex = steps.findIndex((s) => s.id === status);
+  const isFailed = status === ResearchStatus.FAILED;
 
-function getStepState(
-  stepStatus: ResearchStatus,
-  currentStatus: ResearchStatus,
-): 'done' | 'active' | 'pending' {
-  const stepIdx = STATUS_ORDER.indexOf(stepStatus);
-  const currentIdx = STATUS_ORDER.indexOf(currentStatus);
-
-  if (currentStatus === ResearchStatus.COMPLETED) return 'done';
-  if (currentIdx > stepIdx) return 'done';
-  if (currentIdx === stepIdx) return 'active';
-  return 'pending';
-}
-
-export default function ProgressTracker({ job }: ProgressTrackerProps) {
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      {/* Steps */}
-      <div className="flex items-center justify-between mb-8">
-        {STEPS.map((step, i) => {
-          const state = getStepState(step.status, job.status);
-          return (
-            <div key={step.status} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1.5">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all ${
-                    state === 'done'
-                      ? 'bg-green-500 text-white'
-                      : state === 'active'
-                        ? 'bg-white text-black animate-pulse'
-                        : 'bg-zinc-800 text-zinc-600'
-                  }`}
-                >
-                  {step.icon}
-                </div>
-                <span
-                  className={`text-xs font-medium ${
-                    state === 'active'
-                      ? 'text-white'
-                      : state === 'done'
-                        ? 'text-green-400'
-                        : 'text-zinc-600'
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div
-                  className={`flex-1 h-px mx-3 transition-all ${
-                    getStepState(STEPS[i + 1].status, job.status) !== 'pending' ||
-                    job.status === ResearchStatus.COMPLETED
-                      ? 'bg-green-500'
-                      : 'bg-zinc-700'
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
+    <div className="w-full max-w-5xl mx-auto my-8">
+      <div className="glass-panel p-6 sm:p-8 rounded-3xl relative overflow-hidden">
+        {}
+        <div 
+          className="absolute top-0 bottom-0 w-1/5 bg-indigo-500/10 blur-[60px] transition-all duration-1000 ease-in-out"
+          style={{ left: `${(currentIndex / (steps.length - 1)) * 100}%`, transform: 'translateX(-50%)' }}
+        />
 
-      {/* Subtasks - JAVÍTOTT RÉSZ */}
-      {(job.subTasks?.length ?? 0) > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">
-            Research subtasks
-          </p>
-          {job.subTasks?.map((task) => (
-            <div
-              key={task.id}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                task.completed
-                  ? 'border-green-800 bg-green-950/30'
-                  : 'border-zinc-800 bg-zinc-900/50'
-              }`}
-            >
-              <span className="text-sm">
-                {task.completed ? '✅' : '⏳'}
-              </span>
-              <span
-                className={`text-sm ${
-                  task.completed ? 'text-zinc-300' : 'text-zinc-500'
-                }`}
-              >
-                {task.topic}
-              </span>
-            </div>
-          ))}
+        <div className="relative z-10 flex justify-between items-start">
+          {steps.map((step, index) => {
+            const isCompleted = index < currentIndex || status === ResearchStatus.COMPLETED;
+            const isActive = index === currentIndex && !isFailed;
+            const Icon = step.icon;
+
+            return (
+              <div key={step.id} className="flex flex-col items-center relative w-full group">
+                {}
+                {index !== steps.length - 1 && (
+                  <div className="absolute top-6 left-[50%] w-full h-[2px] bg-slate-800/50">
+                    <div 
+                      className={`h-full transition-all duration-700 ease-in-out ${isCompleted ? 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-transparent w-0'}`}
+                      style={{ width: isCompleted ? '100%' : '0%' }}
+                    />
+                  </div>
+                )}
+
+                {}
+                <div 
+                  className={`
+                    relative w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 z-10
+                    ${isCompleted 
+                      ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]' 
+                      : isActive 
+                        ? 'bg-slate-800 border-indigo-400 text-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.6)] ring-4 ring-indigo-500/20' 
+                        : isFailed && index === currentIndex
+                          ? 'bg-red-900/50 border-red-500 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.5)]'
+                          : 'bg-slate-900/50 border-slate-700 text-slate-500'
+                    }
+                  `}
+                >
+                  {isFailed && index === currentIndex ? (
+                    <AlertCircle className="w-5 h-5 animate-pulse" />
+                  ) : isActive ? (
+                    <Icon className="w-5 h-5 animate-pulse" />
+                  ) : (
+                    <Icon className="w-5 h-5" />
+                  )}
+                </div>
+
+                {}
+                <div className="mt-4 flex flex-col items-center text-center">
+                  <span className={`text-sm font-bold transition-colors duration-300 ${isActive ? 'text-indigo-300' : isCompleted ? 'text-slate-200' : 'text-slate-500'}`}>
+                    {step.label}
+                  </span>
+                  <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest hidden sm:block">
+                    {step.description}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

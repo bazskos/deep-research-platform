@@ -1,179 +1,183 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, Loader2, FileText, ExternalLink, AlertCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { getResearch } from '@/lib/api';
 import { ResearchJob, ResearchStatus } from '@/types/research';
 import ProgressTracker from '@/app/components/ProgressTracker';
-import ReportViewer from '@/app/components/ReportViewer';
 
-const TERMINAL_STATUSES = [ResearchStatus.COMPLETED, ResearchStatus.FAILED];
-
-export default function ResearchPage() {
-  const params = useParams();
-  const id = params?.id as string;
+export default function ResearchResultPage() {
+  const { id } = useParams();
   const router = useRouter();
   
-  const [job, setJob] = useState<ResearchJob | null>(null);
+  const [research, setResearch] = useState<ResearchJob | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
+
+  // Status mapping for the English badges
+  const statusLabels: Record<string, string> = {
+    [ResearchStatus.PENDING]: 'Pending',
+    [ResearchStatus.PLANNING]: 'Planning',
+    [ResearchStatus.RESEARCHING]: 'Researching',
+    [ResearchStatus.WRITING]: 'Writing',
+    [ResearchStatus.CRITIQUING]: 'Critiquing',
+    [ResearchStatus.COMPLETED]: 'Completed',
+    [ResearchStatus.FAILED]: 'Failed',
+  };
 
   useEffect(() => {
     if (!id) return;
 
-    let eventSource: EventSource | null = null;
+    let interval: NodeJS.Timeout;
 
-    getResearch(id)
-      .then((data) => {
-        setJob(data);
+    const fetchResearchData = async () => {
+      try {
+        const data: ResearchJob = await getResearch(id as string);   
+        setResearch(data);
+        setIsLoading(false);
 
-        if (TERMINAL_STATUSES.includes(data.status)) return;
-        
-        setIsStreaming(true);
-        eventSource = new EventSource(`http://localhost:3000/research/${id}/stream`);
-
-        eventSource.onmessage = (event) => {
-          try {
-            const updated: ResearchJob = JSON.parse(event.data);
-            setJob(updated);
-
-            if (TERMINAL_STATUSES.includes(updated.status)) {
-              eventSource?.close();
-              setIsStreaming(false);
-            }
-          } catch (err) {
-            console.error('Stream parsing error:', err);
-          }
-        };
-
-        eventSource.onerror = () => {
-          eventSource?.close();
-          setIsStreaming(false);
-        };
-      })
-      .catch(() => {
-        setError('Failed to load research job.');
-      });
-
-    return () => {
-      if (eventSource) {
-        eventSource.close();
+        // If the process is finished (Success or Fail), stop polling
+        if (data.status === ResearchStatus.COMPLETED || data.status === ResearchStatus.FAILED) {
+          clearInterval(interval);
+        }
+      } catch (err) {
+        console.error('Error fetching research:', err);
+        setError('Failed to load research data. Please try again later.');
+        setIsLoading(false);
+        clearInterval(interval);
       }
-      setIsStreaming(false);
     };
+
+    // Initial fetch
+    fetchResearchData();
+
+    // Start polling every 2 seconds to update the ProgressTracker in real-time
+    interval = setInterval(fetchResearchData, 2000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
-  if (error) {
+  const downloadMarkdown = () => {
+    if (!research?.finalReport) return;
+    
+    const blob = new Blob([research.finalReport], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `research-${research.query.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.md`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  if (isLoading) {
     return (
-      <main className="flex flex-col items-center justify-center min-h-screen px-4 bg-transparent">
-        <p className="text-red-400 text-sm mb-4">{error}</p>
-        <button
-          onClick={() => router.push('/')}
-          className="text-zinc-400 hover:text-white text-sm underline transition-colors cursor-pointer"
-        >
-          ← Back to search
-        </button>
-      </main>
+      <div className="min-h-screen bg-[#0f1014] flex flex-col items-center justify-center">
+        <Loader2 className="w-12 h-12 text-indigo-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-medium animate-pulse">Loading research results...</p>
+      </div>
     );
   }
 
-  // 1. JAVÍTÁS: A kezdeti betöltésnél a saját szép lila animációnkat használjuk, kicsit felnagyítva
-  if (!job) {
+  if (error || !research) {
     return (
-      <main className="flex items-center justify-center min-h-screen bg-transparent">
-        <div className="loader scale-150">
-          <svg viewBox="0 0 100 100">
-            <circle className="loader-circle circle-1" cx="50" cy="50" r="40" />
-            <circle className="loader-circle circle-2" cx="50" cy="50" r="30" />
-          </svg>
-        </div>
-      </main>
+      <div className="min-h-screen bg-[#0f1014] flex flex-col items-center justify-center p-4">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h1 className="text-2xl font-bold text-white mb-2">Something went wrong</h1>
+        <p className="text-slate-400 mb-8">{error}</p>
+        <button 
+          onClick={() => router.push('/')}
+          className="flex items-center text-slate-400 hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl transition-all duration-300 mb-8 group w-fit cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to search
+        </button>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-transparent text-white">
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        
-        <div className="mb-10">
-          
-          {/* 2. JAVÍTÁS: Vissza gomb hozzáadott cursor-pointer-rel */}
-          <button
-            onClick={() => router.push('/')}
-            className="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-8 cursor-pointer"
-            title="Back to search"
-          >
-            <svg 
-              className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span className="text-sm font-medium">Back to search</span>
-          </button>
+    <div className="min-h-screen bg-[#0f1014] text-slate-200 font-sans pb-20">
+      {/* Background Gradients */}
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/10 blur-[120px]"></div>
+      </div>
 
-          <h1 className="text-3xl font-bold text-white mb-4 leading-tight">
-            {job.query}
-          </h1>
-          
-          <div className="flex items-center gap-3">
-            <span
-              className={`text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider ${
-                job.status === ResearchStatus.COMPLETED
-                  ? 'bg-green-900/30 text-green-400 border border-green-800/50'
-                  : job.status === ResearchStatus.FAILED
-                    ? 'bg-red-900/30 text-red-400 border border-red-800/50'
-                    : 'bg-zinc-800/50 text-[#A47CF3] border border-[#A47CF3]/30'
-              }`}
-            >
-              {job.status}
-            </span>
-            
-            {/* 3. JAVÍTÁS: A kis pici dupla lila animáció a "Live Processing" szöveg mellett */}
-            {isStreaming && (
-              <span className="flex items-center gap-2 text-xs font-medium text-zinc-400 bg-zinc-900 px-3 py-1 rounded-full border border-zinc-800">
-                <div className="loader" style={{ width: '14px', height: '14px' }}>
-                  <svg viewBox="0 0 100 100">
-                    <circle className="loader-circle circle-1" cx="50" cy="50" r="40" />
-                    <circle className="loader-circle circle-2" cx="50" cy="50" r="30" />
-                  </svg>
-                </div>
-                Live Processing
-              </span>
-            )}
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-12">
+        {/* Header Section */}
+        <button 
+          onClick={() => router.push('/')}
+          className="flex items-center text-slate-400 hover:text-white hover:bg-white/10 px-4 py-2 -ml-4 rounded-xl transition-all duration-300 mb-8 group w-fit cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to search
+        </button>
+
+        <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight pr-12">
+          {research.query}
+        </h1>
+
+        <div className="flex flex-wrap items-center gap-3 mb-12">
+          <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border ${
+            research.status === ResearchStatus.FAILED 
+              ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+              : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'
+          }`}>
+            {statusLabels[research.status]}
+          </span>
+          <div className="flex items-center text-slate-500 text-xs font-bold uppercase tracking-widest">
+            <div className="w-2 h-2 rounded-full bg-indigo-500 mr-2 animate-ping"></div>
+            Live AI Processing
           </div>
         </div>
 
-        {job.status !== ResearchStatus.COMPLETED && (
-          <div className="mb-12 bg-[#111111] border border-zinc-800 rounded-2xl p-6 shadow-xl">
-            <ProgressTracker job={job} />
-          </div>
-        )}
+        {/* The Animated Progress Tracker */}
+        <ProgressTracker status={research.status} />
 
-        {job.status === ResearchStatus.FAILED && (
-          <div className="px-5 py-4 bg-red-950/20 border border-red-900/50 rounded-xl">
-            <p className="text-sm text-red-400 flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Research failed. Please try a different query.
-            </p>
-          </div>
-        )}
+        {/* Report Content */}
+        <div className="mt-16 animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
+          {research.status === ResearchStatus.COMPLETED && research.finalReport ? (
+            <div className="glass-panel p-8 md:p-12 pt-20 rounded-[40px] border border-white/5 shadow-2xl relative overflow-hidden">
+              
+              {/* ACTION BUTTONS (DOWNLOAD/PRINT) */}
+              <div className="absolute top-6 right-6 md:top-8 md:right-8 flex flex-wrap gap-3 print:hidden z-20">
+                <button
+                  onClick={downloadMarkdown}
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md"
+                >
+                  <FileText className="w-4 h-4" /> MD Download
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md"
+                >
+                  <ExternalLink className="w-4 h-4" /> Save as PDF
+                </button>
+              </div>
 
-        {job.status === ResearchStatus.COMPLETED && job.finalReport && (
-          <div className="bg-[#111111] border border-zinc-800 rounded-3xl p-8 shadow-2xl mt-8">
-            <ReportViewer
-              report={job.finalReport}
-              criticNotes={job.criticNotes}
-              results={job.researchResults}
-              query={job.query}
-            />
-          </div>
-        )}
+              {/* REPORT CONTENT */}
+              <div className="markdown-body">
+                <ReactMarkdown>{research.finalReport}</ReactMarkdown>
+              </div>
+            </div>
+          ) : research.status === ResearchStatus.FAILED ? (
+            <div className="text-center py-20 bg-red-500/5 rounded-[40px] border border-red-500/10">
+              <p className="text-red-400 font-medium">The research failed to generate a final report.</p>
+            </div>
+          ) : (
+            <div className="text-center py-24 bg-white/5 rounded-[40px] border border-white/5 backdrop-blur-sm">
+              <FileText className="w-16 h-16 text-slate-700 mx-auto mb-6" />
+              <p className="text-slate-500 font-medium text-lg">
+                Your detailed report is being generated...
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

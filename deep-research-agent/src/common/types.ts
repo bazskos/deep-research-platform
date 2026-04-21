@@ -17,6 +17,8 @@ export interface SubTask {
   id: string;
   topic: string;
   completed: boolean;
+  priority: number;
+  dependsOn: string[];
 }
 
 export interface ResearchResult {
