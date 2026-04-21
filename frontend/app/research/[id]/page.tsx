@@ -140,22 +140,22 @@ export default function ResearchResultPage() {
 
         {/* Report Content */}
         <div className="mt-16 animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
-          {research.status === ResearchStatus.COMPLETED && research.finalReport ? (
-            <div className="glass-panel p-8 md:p-12 pt-20 rounded-[40px] border border-white/5 shadow-2xl relative overflow-hidden">
+            {research.status === ResearchStatus.COMPLETED && research.finalReport ? (
+            <div className="glass-panel p-8 md:p-12 rounded-[40px] border border-white/5 shadow-2xl relative overflow-hidden">
               
               {/* ACTION BUTTONS (DOWNLOAD/PRINT) */}
-              <div className="absolute top-6 right-6 md:top-8 md:right-8 flex flex-wrap gap-3 print:hidden z-20">
+              <div className="flex justify-end flex-wrap gap-3 mb-6 print:hidden">
                 <button
                   onClick={downloadMarkdown}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md"
+                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md shrink-0"
                 >
-                  <FileText className="w-4 h-4" /> MD Download
+                  <FileText className="w-4 h-4 mr-2" /> MD Download
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md"
+                  className="px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-sm font-medium transition-all flex items-center gap-2 cursor-pointer shadow-lg backdrop-blur-md shrink-0"
                 >
-                  <ExternalLink className="w-4 h-4" /> Save as PDF
+                  <ExternalLink className="w-4 h-4 mr-2" /> Save as PDF
                 </button>
               </div>
 
@@ -164,6 +164,7 @@ export default function ResearchResultPage() {
                 <ReactMarkdown>{research.finalReport}</ReactMarkdown>
               </div>
             </div>
+
           ) : research.status === ResearchStatus.FAILED ? (
             <div className="text-center py-20 bg-red-500/5 rounded-[40px] border border-red-500/10">
               <p className="text-red-400 font-medium">The research failed to generate a final report.</p>

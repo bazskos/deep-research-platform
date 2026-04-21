@@ -1,6 +1,7 @@
 # 🚀 Deep Research Platform
 
 A multi-step AI research system that decomposes complex queries, retrieves real-time data, and generates structured reports using an asynchronous pipeline.
+
 ---
 
 ## 🧠 Overview
@@ -19,8 +20,7 @@ Instead of generating a single response, the system processes queries in multipl
 - 🧠 **Vector-based memory:** PostgreSQL + pgvector for storing embeddings.
 - 🎨 **Modern Interactive UI:** Next.js frontend featuring Glassmorphism, a Gooey search effect, and real-time progress tracking (Stepper).
 
-<img width="1901" height="865" alt="screen" src="https://github.com/user-attachments/assets/85538139-841f-40db-8f1b-38ab5e02f247" />
-
+![Deep Research Demo](deep_r.gif)
 
 - 📄 **Export Options:** Generates structured Markdown reports with 1-click MD or PDF export.
 
@@ -55,7 +55,7 @@ The system is built around an asynchronous pipeline with separated responsibilit
 - **Backend:** Node.js, NestJS, TypeScript.
 - **Queue:** BullMQ + Redis.
 - **Database:** PostgreSQL + pgvector.
-- **AI Models:** Groq API (Llama 3 / Gemma) + HuggingFace Inference.
+- **AI Models:** Groq API (Llama 3.1) + HuggingFace Inference.
 - **Search:** Tavily API.
 
 ---

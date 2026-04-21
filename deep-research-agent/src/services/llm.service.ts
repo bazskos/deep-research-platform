@@ -11,11 +11,11 @@ interface GenerationConfig {
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private readonly client: Groq;
-  private readonly model = 'llama-3.3-70b-versatile';
+  private readonly model = 'llama-3.1-8b-instant';
 
   private readonly defaultConfig: GenerationConfig = {
     temperature: 0.7,
-    maxTokens: 8192,
+    maxTokens: 2000,
   };
 
   constructor(private readonly configService: ConfigService) {
@@ -24,7 +24,9 @@ export class LlmService {
   }
 
   async generate(prompt: string, temperature?: number): Promise<string> {
-    this.logger.debug(`Generating response for prompt: ${prompt.slice(0, 80)}...`);
+    this.logger.debug(
+      `Generating response for prompt: ${prompt.slice(0, 80)}...`,
+    );
 
     const response = await this.client.chat.completions.create({
       model: this.model,
